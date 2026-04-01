@@ -92,7 +92,8 @@ namespace OpenRA
 				{ typeof(float2), ParseFloat2 },
 				{ typeof(float3), ParseFloat3 },
 				{ typeof(Rectangle), ParseRectangle },
-				{ typeof(DateTime), ParseDateTime }
+				{ typeof(DateTime), ParseDateTime },
+				{ typeof(Insets), ParseInsets }
 			}.ToFrozenDictionary();
 
 		static readonly FrozenDictionary<Type, Func<string, Type, string, MiniYaml, object>> GenericTypeParsers =
@@ -529,6 +530,22 @@ namespace OpenRA
 			if (DateTime.TryParseExact(value, "yyyy-MM-dd HH-mm-ss", CultureInfo.InvariantCulture,
 					DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var dt))
 				return dt;
+			return InvalidValueAction(value, fieldType, fieldName);
+		}
+
+		static object ParseInsets(string fieldName, Type fieldType, string value)
+		{
+			if (value != null)
+			{
+				var parts = value.Split(Comma, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+				if (parts.Length == 4
+				    && Exts.TryParseInt32Invariant(parts[0], out var top)
+				    && Exts.TryParseInt32Invariant(parts[1], out var right)
+				    && Exts.TryParseInt32Invariant(parts[2], out var bottom)
+				    && Exts.TryParseInt32Invariant(parts[3], out var left))
+					return new Insets(top, right, bottom, left);
+			}
+
 			return InvalidValueAction(value, fieldType, fieldName);
 		}
 
